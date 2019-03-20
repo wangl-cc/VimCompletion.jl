@@ -1,0 +1,4 @@
+name = "VimCompletion"
+uuid = "952f2f7c-4acd-11e9-0025-0d5163cc19a5"
+authors = ["Long Wang <wangl.cc@outlook.com>"]
+version = "0.1.0"
