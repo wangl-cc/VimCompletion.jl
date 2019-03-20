@@ -1,5 +1,7 @@
 module VimCompletion
 
+export vimapi
+
 include("complete.jl")
 
 function vimfindstart(line::AbstractString, pos::Int)
