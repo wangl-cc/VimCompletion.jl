@@ -1,5 +1,3 @@
-import REPL
-
 using REPL.REPLCompletions
 
 function findstart(line::AbstractString, pos::Int)::Int
@@ -7,7 +5,7 @@ function findstart(line::AbstractString, pos::Int)::Int
         pos -= 1
     end
     start = findprev(isequal(' '), line, pos-1)
-    return ifelse(isnothing(start), 1, start)
+    return ifelse(isnothing(start), 0, start)
 end
 
 function getcompletion(base::AbstractString, pos::Int, context_module=Main)
