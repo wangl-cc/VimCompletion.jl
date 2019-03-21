@@ -13,6 +13,11 @@ function getcompletion(base::AbstractString, pos::Int, context_module=Main)
     completionlist = unique(completion_text.(ret))
     if base[1:pos] == "using "
         completionlist =  "using " .* completionlist
+    else
+        dotpos = findprev(isequal('.'), base, pos)
+        if !isnothing(dotpos)
+            completionlist =  base[1:dotpos] .* completionlist
+        end
     end
     return completionlist, should_complete
 end
