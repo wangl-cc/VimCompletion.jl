@@ -1,26 +1,35 @@
 using REPL.REPLCompletions
 using JSON
 
-
 function findstart(line::AbstractString, pos::Int)::Int
-    if line[pos] == ' '
-        pos -= 1
+    if pos == 1
+        return 0
     end
-    start = findprev(isequal(' '), line, pos-1)
-    return ifelse(isnothing(start), 0, start)
+    findusing = findprev("using ", line, pos)
+    if !isnothing(findusing)
+        return findusing.start-1
+    end
+    start = 0
+    for i in (' ', '(', ')', '[' , ']', '{' , '}', '=', '!', '+', '-', '+', '*', '&', '#', '$', '%', '^', '<', '>', '?', ',')
+        tmpstart = findprev(isequal(i), line, pos-1)
+        tmpstart = ifelse(isnothing(tmpstart), 0, tmpstart)
+        if tmpstart >= start
+            start = tmpstart
+        end
+    end
+    return start
 end
 
 function getcompletion(base::AbstractString, pos::Int, context_module=Main)
     ret, range, should_complete = completions(base, pos, context_module)
     completionlist = unique(completion_text.(ret))
-    if base[1:pos] == "using "
-        completionlist = "using " .* completionlist
-    elseif base[pos] == '('
-        return completionlist, false
-    else
-        dotpos = findprev(isequal('.'), base, pos)
-        if !isnothing(dotpos)
-            completionlist =  base[1:dotpos] .* completionlist
+    if pos == 0
+        return completionlist, should_complete
+    end
+    for i in ('.', '`', '"', '\\', '/', ' ')
+        symbolpos = findprev(isequal(i), base, pos)
+        if !isnothing(symbolpos)
+            completionlist =  base[1:symbolpos] .* completionlist
         end
     end
     return completionlist, should_complete
