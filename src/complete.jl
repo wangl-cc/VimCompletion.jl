@@ -4,7 +4,7 @@ using JSON
 """
     findstart(line::AbstractString,pos::Int)::Int
 
-Find complete start position of given string by recognize some separators. Because "using " in REPLCompletions is flag of package, which will be different. 
+Find complete start position of given string by recognize some separators. Because "using " in REPLCompletions is flag of package, which will be different.
 
 # Arguments
 - `line::AbstractString`: A string contain chars from current line.
@@ -89,15 +89,25 @@ function getcompletion(base::AbstractString, pos::Int, context_module=Main)
     return completionlist, should_complete
 end
 
-function vimfindstart(io, line::AbstractString, pos::Int)
+function evalstr(str::AbstractString, context_module=Main)
+    result = nothing
+    try
+        result = context_module.eval(Meta.parse(str))
+    catch error
+        result = error
+    end
+    return result
+end
+
+function writestart(io, line::AbstractString, pos::Int)
     JSON.Writer.print(io, findstart(line, pos))
 end
 
-function vimfindstart(io, line::AbstractString, pos::AbstractString)
-    return vimfindstart(io, line, Meta.parse(pos))
+function writestart(io, line::AbstractString, pos::AbstractString)
+    writestart(io, line, Meta.parse(pos))
 end
 
-function vimcompletion(io, base::AbstractString, pos::Int, context_module=Main)
+function writecompletion(io, base::AbstractString, pos::Int, context_module=Main)
     completionlist, should_complete = getcompletion(base, pos, context_module)
     if should_complete
         JSON.Writer.print(io, completionlist)
@@ -107,17 +117,17 @@ function vimcompletion(io, base::AbstractString, pos::Int, context_module=Main)
     nothing
 end
 
-function vimcompletion(io, base::AbstractString, pos::AbstractString, context_module=Main)
-    return vimcompletion(io, base, Meta.parse(pos), context_module)
+function writecompletion(io, base::AbstractString, pos::AbstractString, context_module=Main)
+    writecompletion(io, base, Meta.parse(pos), context_module)
 end
 
-function vimapi(io, cmd)
-    opt = cmd[1]
-    args = cmd[2:end]
-    if opt == "-f"
-        vimfindstart(io, args...)
-    elseif opt == "-c"
-        vimcompletion(io, args...)
+function writeeval(io, str::AbstractString, context_module=Main)
+    result = evalstr(str, context_module)
+    if isnothing(result)
+        JSON.Writer.print(io, ["Nothing"])
+    elseif isa(result, Function)
+        JSON.Writer.print(io, ["Function"])
+    else
+        JSON.Writer.print(io, [typeof(result), result])
     end
-    nothing
 end
