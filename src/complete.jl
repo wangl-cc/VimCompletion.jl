@@ -31,7 +31,7 @@ function findstart(line::AbstractString, pos::Int)::Int
         return findusing.start-1
     end
     start = 0
-    for i in (' ', '(', ')', '[' , ']', '{' , '}', '=', '!', '+', '-', '+', '*', '&', '#', '$', '%', '^', '<', '>', '?', ',')
+    for i in (' ', '(', ')', '[' , ']', '{' , '}', '=', '!', '+', '-', '+', '*', '&', '#', '$', '%', '^', '<', '>', '?', ',', ':')
         tmpstart = findprev(isequal(i), line, pos-1)
         tmpstart = ifelse(isnothing(tmpstart), 0, tmpstart)
         if tmpstart >= start
