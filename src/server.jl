@@ -22,9 +22,7 @@ end
 function cmdparser(io, cmd)
     opt = cmd[1]
     args = cmd[2:end]
-    if opt == "-f"
-        writestart(io, args...)
-    elseif opt == "-c"
+    if opt == "-c"
         writecompletion(io, args...)
     elseif opt == "-e"
         writeeval(io, args...)

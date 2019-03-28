@@ -1,50 +1,6 @@
 using REPL.REPLCompletions
 using JSON
 
-"""
-    findstart(line::AbstractString,pos::Int)::Int
-
-Find complete start position of given string by recognize some separators. Because "using " in REPLCompletions is flag of package, which will be different.
-
-# Arguments
-- `line::AbstractString`: A string contain chars from current line.
-- `pos::Int`: Current cursor's col number.
-
-# Example
-```jldoctest
-julia> findstart("using ", 6)
-0
-
-julia> findstart("func(arg", 6)
-5
-
-julia> findstart("1+arg", 6)
-2
-```
-"""
-function findstart(line::AbstractString, pos::Int)::Int
-    if pos == 1
-        return 0
-    end
-    findusing = findprev("using ", line, pos)
-    if !isnothing(findusing)
-        return findusing.start-1
-    end
-    start = 0
-    for i in (' ', '(', ')', '[' , ']', '{' , '}', '=', '!', '+', '-', '+', '*', '&', '#', '$', '%', '^', '<', '>', '?', ',', ':')
-        tmpstart = findprev(isequal(i), line, pos-1)
-        tmpstart = ifelse(isnothing(tmpstart), 0, tmpstart)
-        if tmpstart >= start
-            start = tmpstart
-        end
-    end
-    tmpstart = findprev(isequal('\\'), line, pos-1)
-    tmpstart = isnothing(tmpstart) ? 0 : tmpstart-1
-    if tmpstart >= start
-        start = tmpstart
-    end
-    return start
-end
 
 """
     getcompletion(base::AbstractString,pos::Int,context_module=Main)
@@ -97,14 +53,6 @@ function evalstr(str::AbstractString, context_module=Main)
         result = error
     end
     return result
-end
-
-function writestart(io, line::AbstractString, pos::Int)
-    JSON.Writer.print(io, findstart(line, pos))
-end
-
-function writestart(io, line::AbstractString, pos::AbstractString)
-    writestart(io, line, Meta.parse(pos))
 end
 
 function writecompletion(io, base::AbstractString, pos::Int, context_module=Main)
