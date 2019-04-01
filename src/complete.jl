@@ -4,16 +4,16 @@ using JSON
 const home = homedir()
 
 function getcompletion(base::AbstractString, pos::Int, context_module=Main)
-    if base[1:2] in ("\"~", "`~")
+    if pos == 0
+        return [], false
+    end
+    if pos >= 2 && base[1:2] in ("\"~", "`~")
         nbase = base[1] * home * base[3:end]
         base = nbase
         pos += (length(home)-1)
     end
     ret, range, should_complete = completions(base, pos, context_module)
     completionlist = unique(completion_text.(ret))
-    if pos == 0
-        return completionlist, should_complete
-    end
     maxsymbolpos = 0
     for i in ('`', '"', '/', '.', ' ')
         symbolpos = findprev(isequal(i), base, pos)
