@@ -1,46 +1,36 @@
 using REPL.REPLCompletions
 using JSON
 
+const home = homedir()
 
-"""
-    getcompletion(base::AbstractString,pos::Int,context_module=Main)
-
-By calling function completions in REPLCompletions get the completions of give str `base`.
-
-# Arguments
-- `base::AbstractString`: The string is to be complete.
-- `pos::Int`: Current current col number.
-- `context_module=Main`: Context module of completion.
-
-# Example
-```jldoctest
-julia> getcompletion("using ", 6)
-(["using Atom", "using BSON", "using Base", "using Base64", "using BenchmarkTools"
-, "using CRC32c", "using CUDAdrv", "using CodecZlib", "using Conda", "using Core"
- …  "using Serialization", "using SharedArrays", "using Sockets", "using SparseArr
-ays", "using Statistics", "using SuiteSparse", "using Test", "using UUIDs", "using
- Unicode", "using VimCompletion"], true)
-
-julia> getcompletion("pri", 3)
-(["primitive type", "print", "println", "printstyled"], true)
-
-julia> getcompletion("Base.", 5)
-(["Base.!", "Base.!=", "Base.!==", "Base.%", "Base.&", "Base.*", "Base.+", "Base.-
-", "Base./", "Base.//"  …  "Base.≢", "Base.≤", "Base.≥", "Base.⊆", "Base.⊇", "Base
-.⊈", "Base.⊉", "Base.⊊", "Base.⊋", "Base.⊻"], true)
-```
-"""
 function getcompletion(base::AbstractString, pos::Int, context_module=Main)
+    if base[1:2] in ("\"~", "`~")
+        nbase = base[1] * home * base[3:end]
+        base = nbase
+        pos += (length(home)-1)
+    end
     ret, range, should_complete = completions(base, pos, context_module)
     completionlist = unique(completion_text.(ret))
     if pos == 0
         return completionlist, should_complete
     end
-    for i in ('.', '`', '"', '/', ' ')
+    maxsymbolpos = 0
+    for i in ('`', '"', '/', '.', ' ')
         symbolpos = findprev(isequal(i), base, pos)
         if !isnothing(symbolpos)
-            completionlist =  base[1:symbolpos] .* completionlist
+            if symbolpos > maxsymbolpos
+                if i == '.'
+                    if maxsymbolpos == 0
+                        maxsymbolpos = symbolpos
+                    end
+                else
+                    maxsymbolpos = symbolpos
+                end
+            end
         end
+    end
+    if maxsymbolpos != 0
+        completionlist =  base[1:maxsymbolpos] .* completionlist
     end
     return completionlist, should_complete
 end
